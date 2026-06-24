@@ -1,0 +1,46 @@
+Git Commands Guide for Centralized Automation Platform
+======================================================
+
+Below are the commands used to initialize git, stage, commit, and push the repository to GitHub:
+
+1. Initialize Git Repository
+   Command:
+   git init
+   
+   Explanation:
+   Initializes a brand new, empty local Git repository in the project's root directory. This creates a hidden `.git` folder that will track all subsequent changes.
+
+2. Configure Remote Repository
+   Command:
+   git remote add origin https://github.com/ManjunathGouda7/Django_UI
+   
+   Explanation:
+   Binds your local Git repository to a remote destination (GitHub). "origin" is the standard alias used to refer to this remote target.
+
+3. Rename local branch to 'main'
+   Command:
+   git branch -M main
+   
+   Explanation:
+   Renames the default primary branch (which is usually named "master" in older Git installations) to "main" to match modern repository naming standards on GitHub.
+
+4. Stage files
+   Command:
+   git add .
+   
+   Explanation:
+   Stages all modified, deleted, and newly created untracked files in the current folder (except those explicitly ignored in `.gitignore`, such as the virtual environment 'myenv/', logs, and the database 'db.sqlite3') for the next commit.
+
+5. Create Commit
+   Command:
+   git commit -m "feat: implement sqlite ORM persistence, simple healthcheck, docker compose, and github actions CI"
+   
+   Explanation:
+   Saves the staged snapshot of the codebase into your local Git history. The `-m` flag specifies the descriptive message for this snapshot.
+
+6. Push local branch to GitHub
+   Command:
+   git push -u origin main
+   
+   Explanation:
+   Uploads local commits from the `main` branch to the `origin` remote on GitHub. The `-u` flag creates an upstream tracking association, allowing you to use simple `git push` or `git pull` in the future.
