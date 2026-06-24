@@ -1,46 +1,201 @@
-Git Commands Guide for Centralized Automation Platform
-======================================================
+Git Commands Guide & Cheat Sheet
+================================
 
-Below are the commands used to initialize git, stage, commit, and push the repository to GitHub:
+This document contains a comprehensive reference of Git commands. It is split into two sections:
+1. Commands used to set up this specific project.
+2. A comprehensive reference of other daily/advanced Git commands.
+
+--------------------------------------------------------------------------------
+PART 1: SETUP COMMANDS USED IN THIS PROJECT
+--------------------------------------------------------------------------------
 
 1. Initialize Git Repository
    Command:
    git init
-   
-   Explanation:
-   Initializes a brand new, empty local Git repository in the project's root directory. This creates a hidden `.git` folder that will track all subsequent changes.
+   Explanation: Creates a brand new, empty local Git repository.
 
 2. Configure Remote Repository
    Command:
    git remote add origin https://github.com/ManjunathGouda7/Django_UI
-   
-   Explanation:
-   Binds your local Git repository to a remote destination (GitHub). "origin" is the standard alias used to refer to this remote target.
+   Explanation: Links your local repository to the remote one on GitHub under the alias "origin".
 
-3. Rename local branch to 'main'
+3. Rename default branch to 'main'
    Command:
    git branch -M main
-   
-   Explanation:
-   Renames the default primary branch (which is usually named "master" in older Git installations) to "main" to match modern repository naming standards on GitHub.
+   Explanation: Renames the current branch to "main".
 
 4. Stage files
    Command:
    git add .
-   
-   Explanation:
-   Stages all modified, deleted, and newly created untracked files in the current folder (except those explicitly ignored in `.gitignore`, such as the virtual environment 'myenv/', logs, and the database 'db.sqlite3') for the next commit.
+   Explanation: Stages all files in the directory (except those ignored by .gitignore) for the next commit.
 
 5. Create Commit
    Command:
    git commit -m "feat: implement sqlite ORM persistence, simple healthcheck, docker compose, and github actions CI"
-   
-   Explanation:
-   Saves the staged snapshot of the codebase into your local Git history. The `-m` flag specifies the descriptive message for this snapshot.
+   Explanation: Records a snapshot of the staged files to your local repository history.
 
-6. Push local branch to GitHub
+6. Push to GitHub
    Command:
    git push -u origin main
-   
-   Explanation:
-   Uploads local commits from the `main` branch to the `origin` remote on GitHub. The `-u` flag creates an upstream tracking association, allowing you to use simple `git push` or `git pull` in the future.
+   Explanation: Uploads local commits to GitHub and sets main as the default tracking branch.
+
+
+--------------------------------------------------------------------------------
+PART 2: COMPREHENSIVE GIT COMMANDS CHEAT SHEET
+--------------------------------------------------------------------------------
+
+### Section A: Daily Working & Staging
+1. Check Status
+   Command:
+   git status
+   Explanation: Shows the status of your working tree (untracked, modified, or staged files).
+
+2. View Differences
+   Command:
+   git diff
+   Explanation: Shows differences between your working directory and the staging area.
+
+3. Stage Specific File
+   Command:
+   git add <filename>
+   Explanation: Stages only the specified file (unlike 'git add .' which stages everything).
+
+4. Unstage File (Keep Changes)
+   Command:
+   git restore --staged <filename>
+   Explanation: Removes a file from the staging area but keeps its changes in your working directory.
+
+5. Revert Uncommitted Changes in Working Directory
+   Command:
+   git restore <filename>
+   Explanation: Discards modifications to a file, returning it to the state of the last commit.
+
+6. Amend Last Commit
+   Command:
+   git commit --amend -m "new message"
+   Explanation: Replaces the last commit with a new one containing updated files or a corrected commit message.
+
+
+### Section B: Branching & Merging
+1. List Branches
+   Command:
+   git branch
+   Explanation: Lists all local branches in the repository. Use 'git branch -a' to see local and remote branches.
+
+2. Create New Branch
+   Command:
+   git branch <branch-name>
+   Explanation: Creates a new branch pointing to your current HEAD commit.
+
+3. Switch to Branch
+   Command:
+   git checkout <branch-name>   OR   git switch <branch-name>
+   Explanation: Switches your working directory to the specified branch.
+
+4. Create and Switch to a New Branch (One Step)
+   Command:
+   git checkout -b <branch-name>   OR   git switch -c <branch-name>
+   Explanation: Creates a new branch and switches to it immediately.
+
+5. Delete a Branch
+   Command:
+   git branch -d <branch-name>
+   Explanation: Deletes the specified branch safely (refuses to delete if it contains unmerged changes). Use '-D' to force delete.
+
+6. Merge Branch
+   Command:
+   git merge <branch-name>
+   Explanation: Integrates changes from the target branch into your currently checked-out branch.
+
+7. Rebase Branch
+   Command:
+   git rebase <branch-name>
+   Explanation: Re-applies commits from your current branch on top of another branch to keep a linear history.
+
+
+### Section C: Sharing & Syncing with Remotes
+1. Fetch Updates (No Merge)
+   Command:
+   git fetch origin
+   Explanation: Downloads commits, files, and refs from the remote repository, but does not modify your local work.
+
+2. Pull Updates (Fetch + Merge)
+   Command:
+   git pull origin <branch-name>
+   Explanation: Fetches changes from the remote branch and automatically merges them into your current local branch.
+
+3. Push Updates
+   Command:
+   git push origin <branch-name>
+   Explanation: Uploads local commits of a specific branch to the remote repository.
+
+4. List Remote Configurations
+   Command:
+   git remote -v
+   Explanation: Shows the list of remote repositories configured along with their URLs.
+
+
+### Section D: Stashing (Temporary Storage)
+1. Stash Changes
+   Command:
+   git stash
+   Explanation: Temporarily saves (shelves) modified tracked files to clean the working directory without committing.
+
+2. List Stashes
+   Command:
+   git stash list
+   Explanation: Shows all stashed change sets in your stack.
+
+3. Re-apply Last Stash
+   Command:
+   git stash pop
+   Explanation: Re-applies the most recently stashed changes and deletes them from the stash stack.
+
+4. Discard Last Stashed Changes
+   Command:
+   git stash drop
+   Explanation: Deletes the most recent stash from the stack without applying it. Use 'git stash clear' to clear all.
+
+
+### Section E: History & Inspection
+1. View Commit History
+   Command:
+   git log
+   Explanation: Displays the chronological list of commits in the current branch. Use '--oneline' for a brief view.
+
+2. Search Commit Logs
+   Command:
+   git log --grep="search term"
+   Explanation: Displays commits where the commit message matches the search term.
+
+3. Show Specific Commit Detail
+   Command:
+   git show <commit-hash>
+   Explanation: Displays metadata and content changes (diffs) of a specific commit.
+
+4. Line-by-Line File History
+   Command:
+   git blame <filename>
+   Explanation: Lists each line in a file with the commit hash and author that last modified it.
+
+
+### Section F: Undoing & Resetting
+1. Undo Commits (Soft Reset - Keep Changes)
+   Command:
+   git reset --soft HEAD~1
+   Explanation: Undoes the latest commit, moving the files back to the staged area (no code is lost).
+
+2. Undo Commits (Hard Reset - Discard Changes)
+   Command:
+   git reset --hard HEAD~1
+   Explanation: Completely deletes the latest commit, discarding all changes in files and restoring the repository to the previous commit. (Caution: Action is destructive and cannot be easily undone).
+
+3. Create Revert Commit
+   Command:
+   git revert <commit-hash>
+   Explanation: Creates a new commit that applies the exact opposite changes of the specified commit. This is the safest way to undo pushed commits.
+
+4. Remove Untracked Files
+   Command:
+   git clean -df
+   Explanation: Deletes untracked directories (-d) and untracked files (-f) from your working directory.
