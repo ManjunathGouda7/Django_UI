@@ -1,0 +1,4 @@
+The module UIchecks holds the all moajor MongoDB operations such as.
+1. Testcase Operations - CURD
+2. Page Object Model (POM) - CURD
+3. TestTags,TestSuit,Product Category, UIactions 

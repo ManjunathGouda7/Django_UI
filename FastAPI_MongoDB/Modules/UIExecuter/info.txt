@@ -1,0 +1,2 @@
+1. project Operaions - on JSON file - SRC/LocalStorage/Status.JSON
+2.fetch Testcase data from MongoDB server and store it on JSON file

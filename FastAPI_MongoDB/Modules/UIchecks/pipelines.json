@@ -1,0 +1,266 @@
+{
+    "UIChecks":{
+        "TestcaseSetup":{
+            "GetTestcaseTags":[
+                {"$match":{"Header":"TestTags"}},
+                {"$project": {"_id":0,"TestTags":"$details"}}],
+            "GetTestSuits":[
+                {"$match":{"Header":"TestSuits"}},
+                {"$project": {"_id":0,"TestSuits":"$details"}}],
+            "GetActionsList":[
+                {"$match":{"Header":"UIActions"}},
+                {"$project": {"_id":0,"Actions":"$details"}}
+                ],
+            "GetActions":[
+                {"$match":{"Product":"#P1","Category":"#P2","TestID":"#P3"}},
+                {"$unwind":"$Details"},
+                {"$match":{"Details.StepID":"#P4"}},
+                {"$project":{"_id":0,"Actions":"$Details.Details"}} 
+            ],
+            "GetTCStepsAll":[
+                {"$match": {"Product": "#P1","Category": "#P2","TestID": "#P3"}},
+                {"$project": {"_id": 0,"TCSteps":"$Details"}}
+            ],
+            "GetTCStep":[
+                {"$match": {"Product": "#P1","Category": "#P2","TestID": "#P3"}},
+                {"$unwind":"$Details"},
+                {"$match":{"Details.StepID":"#P4"}},
+                {"$project": {"_id": 0,"TCSteps":"$Details"}}
+            ]
+        },
+        "General":{
+            "GetProducts":[
+                {"$match":{"Header":"ProductCategory"}},
+                {"$unwind":"$details"},
+                {"$project": {"_id":0,"product":"$details.Header"}},
+                {"$group":{"_id":0,"products":{"$push":"$product"}}},
+                {"$project": {"_id":0,"products":1}}
+                ],
+            "GetCategories":[
+                {"$match":{"Header": "ProductCategory"}},
+                {"$unwind": "$details"},
+                {"$match":{"details.Header":"#P1"}},
+                {"$unwind":"$details.details"},
+                {"$project":{"_id":0,"Category":"$details.details.Header"}},
+                {"$group": {"_id": 0,"Categories": {"$push": "$Category"}}},
+                {"$project": {"_id": 0,"Categories": 1}}
+                ]
+        },
+        "POM":{
+            "GetWebpages":[
+                {"$match": {"Product": "#P1"}},
+                {"$unwind": "$Details"},
+                {"$match": {"Details.Category": "#P2"}},
+                {"$unwind": "$Details.Details"},
+                {"$project": {"_id": 0,"Webpage": "$Details.Details.WebPage"}},
+                {"$group": {"_id": 0,"Webpages": {"$push": "$Webpage"}}},
+                {"$project": {"_id": 0,"Webpages": 1}}
+                ],
+            "GetWebpages2":[
+                {"$match": {"Header":"ProductCategory"}},
+                {"$unwind":"$details"},
+                {"$match": {"details.Header":"MPP"}},
+                {"$unwind": "$details.details"},
+                {"$match": {"details.details.Header": "TPT"}},
+                {"$unwind": "$details.details.details.UIData"},
+                {"$match": {"details.details.details.UIData.Header":"PagesAndFrames"}},
+                {"$unwind":"$details.details.details.UIData.details"},
+                {"$project": {"_id":0,"WebPage":"$details.details.details.UIData.details.WebPage"}},
+                {"$group":{"_id":0,"WebPages":{"$push":"$WebPage"}}},
+                {"$project": {"_id": 0,"WebPages": 1}}
+            ],
+            "GetFrames2":[
+                {"$match": {"Header":"ProductCategory"}},
+                {"$unwind":"$details"},
+                {"$match": {"details.Header":"MPP"}},
+                {"$unwind": "$details.details"},
+                {"$match": {"details.details.Header": "TPT"}},
+                {"$unwind": "$details.details.details.UIData"},
+                {"$match": {"details.details.details.UIData.Header":"PagesAndFrames"}},
+                {"$unwind":"$details.details.details.UIData.details"},
+                {"$match": {"details.details.details.UIData.details.WebPage":"TestConfiguration"}},
+                {"$project": {"_id": 0,"Frames":"$details.details.details.UIData.details.Frame"}}
+            ],
+            "GetFrames":[
+                {"$match": {"Product": "#P1"}},
+                {"$unwind": "$Details"},
+                {"$match": {"Details.Category": "#P2"}},
+                {"$unwind": "$Details.Details"},
+                {"$match":{"Details.Details.WebPage":"#P3"}},
+                {"$unwind":"$Details.Details.Details"},
+                {"$project": {"_id": 0,"Frame": "$Details.Details.Details.Frame"}},
+                {"$group": {"_id": 0,"Frames": {"$push": "$Frame"}}},
+                {"$project": {"_id": 0,"Frames": 1}}
+                ],
+            "GetElements":[
+                {"$match":{"Product":"#P1"}},
+                {"$unwind":"$Details"},
+                {"$match":{"Details.Category":"#P2"}},
+                {"$unwind":"$Details.Details"},
+                {"$match":{"Details.Details.WebPage":"#P3"}},
+                {"$unwind":"$Details.Details.Details"},
+                {"$match":{"Details.Details.Details.Frame":"#P4"}},
+                {"$unwind":"$Details.Details.Details.Details"},
+                {"$project": {"_id":0,"Element":"$Details.Details.Details.Details.Element"}},
+                {"$group":{"_id":0,"Elements":{"$push":"$Element"}}},
+                {"$project": {"_id":0,"Elements":1}}
+                ],
+            "GetElementXpath":[
+                {"$match": {"Product": "MPP"}}, 
+                {"$unwind": "$Details"},
+                {"$match": {"Details.Category": "TPT"}},
+                {"$unwind": "$Details.Details"},
+                {"$match": {"Details.Details.WebPage": "Main"}},
+                {"$unwind": "$Details.Details.Details"},
+                {"$match": {"Details.Details.Details.Frame": "SideMenu"}},
+                {"$unwind": "$Details.Details.Details.Details"},
+                {"$match": {"Details.Details.Details.Details.Element": "Connection_Button"}},
+                {"$unwind": "$Details.Details.Details.Details.Details"},
+                {"$project": {"_id": 0,"Element": "$Details.Details.Details.Details.Details.Value","Type":"$Details.Details.Details.Details.Details.Type"}}
+            ],
+            "GetAllElements":[
+                {"$match":{"Product":"#P1"}},
+                {"$unwind":"$Details"},
+                {"$match":{"Details.Category":"#P2"}},
+                {"$unwind": "$Details.Details"},
+                {"$unwind": "$Details.Details.Details"},
+                {"$unwind": "$Details.Details.Details.Details"},
+                {"$project": {
+                    "_id":0,
+                    "Product":"$Product",
+                    "Category":"$Details.Category",
+                    "WebPage":"$Details.Details.WebPage",
+                    "Frame":"$Details.Details.Details.Frame",
+                    "Element":"$Details.Details.Details.Details.Element",
+                    "Xpath":"$Details.Details.Details.Details.Details.Value",
+                    "Type":"$Details.Details.Details.Details.Details.Type"
+                }}
+            ],
+            "GetElement":[
+                {"$match":{"Product":"MPP"}},
+                {"$unwind":"$Details"},
+                {"$match":{"Details.Category":"TPT"}},
+                {"$unwind": "$Details.Details"},
+                {"$match":{"Details.Details.WebPage":"Main"}},
+                {"$unwind": "$Details.Details.Details"},
+                {"$match":{"Details.Details.Details.Frame":"Home"}},
+                {"$unwind": "$Details.Details.Details.Details"},
+                {"$match":{"Details.Details.Details.Details.Element":"Alertbox"}},
+                {"$project": {
+                    "_id":0,
+                    "WebPage":"$Details.Details.WebPage",
+                  	"Frame":"$Details.Details.Details.Frame",
+                    "Element":"$Details.Details.Details.Details.Element",
+                    "Xpath":"$Details.Details.Details.Details.Details.Value",
+                    "Type":"$Details.Details.Details.Details.Details.Type"
+                }}
+            ],
+            "GetElementType":[
+                {"$match":{"Header":"UIElements_Type"}},
+                {"$project": {"_id":0,"TestTags":"$details"}}]
+
+            },
+        "UIRunner":{
+            "GetTestData":[
+                {"$match":{"Product":"#P1","Category":"#P2","TestID":{"$in":"#P3"}}},
+                {"$project": {"_id": 0,"Header": {"TestID": "$TestID","TestName":"$TestName","Description":"$Description","Tags":"$TestTags","TestSuits":"$Testsuits"},
+                    "Details": {"$map": {
+                        "input": "$Details",
+                        "as": "step",
+                        "in": {"Header": {"StepID": "$$step.StepID","Description":"$$step.Description","ElementPath": "$$step.ElementPath"},
+                            "Details": {
+                            "$map": {"input": "$$step.Details",
+                                            "as": "action",
+                                            "in": {"Action": "$$action.Action","Value": "$$action.Value"}
+                }}}}}}}
+            ],
+            "GetProject":[
+                {"$match":{"Header":"UIProject"}},
+                {"$unwind":"$Details"},
+                {"$project": {
+                    "_id":0,
+                    "ProjectName":"$Details.ProjectName",
+                    "TestEngineer":"$Details.TestEngineer",
+                    "TestLab":"$Details.TestLab",
+                    "SWversion1":"$Details.SWversion1",
+                    "SWversion2":"$Details.SWversion2",
+                    "FF1":"$Details.FF1",
+                    "FF2":"$Details.FF2",
+                    "FF3":"$Details.FF3",
+                    "FF4":"$Details.FF4",
+                    "Remarks":"$Details.Remarks"
+                }}
+                ]
+        },
+        "UIReports":{
+            "TestHeaders":[
+                {"$unwind": "$Details"},
+                {"$project": {
+                    "_id": 0,
+                    "ProjectName": "$Header.ProjectName",
+                    "TestEngineer": "$Header.TestEngineer",
+                    "TestLab": "$Header.TestLab",
+                    "SWVersion": "$Header.SWversion1",
+                    "FWVersion": "$Header.SWversion1",
+                    "Product": "$Header.Product",
+                    "Category": "$Header.Category",
+                    "TestcaseID": "$Details.TestID",
+                    "TestName": "$Details.TestName",
+                    "Description": "$Details.Description",
+                    "Tags": "$Details.Tags",
+                    "TestSuits": "$Details.TestSuits",
+                    "RunTime": "$Details.RunTime",
+                    "Result": "$Details.Result",
+                    "PassPercentage": "$Details.PassPercentage",
+                    "Remarks": "$Details.Remarks"
+                    }
+                }],
+            "TestSteps":[
+                {"$unwind": "$Details"},
+                {"$match": {"Details.TestID":"MTU002"}},
+                {"$unwind":"$Details.Details"},
+                {"$project": {
+                    "_id": 0,
+                    "StepID":"$Details.Details.StepID",
+                    "StepDescr":"$Details.Details.Description",
+                    "StepResult":"$Details.Details.Result",
+                    "StepRemarks":"$Details.Details.Remarks"
+                    }}
+            ],
+            "StepsActions":[
+                {"$unwind": "$Details"},
+                {"$match": {"Details.TestID":"MTU001"}},
+                {"$unwind":"$Details.Details"},
+  				{"$match": {"Details.Details.StepID":"MTU001_001"}},
+  				{"$unwind":"$Details.Details.Details"},
+                {"$project": {
+                    "_id": 0,
+                    "Action":"$Details.Details.Details.Action",
+                    "Input":"$Details.Details.Details.Input",
+                  	"Result":"$Details.Details.Details.Result"
+                    }}
+            ],
+            "DetailedReport":[
+                {"$unwind": "$Details"},
+                {"$unwind":"$Details.Details"},
+                {"$project": {
+                    "_id": 0,
+                    "TestcaseID": "$Details.TestID",
+                    "TestName": "$Details.TestName",
+                    "Description": "$Details.Description",
+                    "Tags": "$Details.Tags",
+                    "TestSuits": "$Details.TestSuits",
+                    "RunTime": "$Details.RunTime",
+                    "Result": "$Details.Result",
+                    "PassPercentage": "$Details.PassPercentage",
+                    "Remarks": "$Details.Remarks",
+                    "StepID":"$Details.Details.StepID",
+                    "StepDescr":"$Details.Details.Description",
+                    "StepResult":"$Details.Details.Result",
+                    "StepRemarks":"$Details.Details.Remarks"
+                    }}
+                ]
+        }
+        
+    }
+}

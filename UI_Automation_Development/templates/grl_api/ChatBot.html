@@ -1,0 +1,106 @@
+{% extends "grl_api/base.html" %}
+{% load static %}
+
+{% block title %}ChatBot - GRL{% endblock %}
+
+{% block extra_css %}
+<!-- External Libraries -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+<link rel="stylesheet" href="{% static 'css/chatbot.css' %}">
+{% endblock %}
+
+{% block content %}
+<!-- Header -->
+    
+        <div class="user-section">
+            <span>Guest User |</span>
+            <button class="logout-btn" onclick="alert('Logout functionality coming soon!')">Logout</button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content" style="max-width: 1600px; margin: 0 auto; padding: 0 20px;">
+        <div class="chatbot-container">
+
+            <!-- History Sidebar -->
+            <div class="history-sidebar" id="historySidebar">
+                <div class="sidebar-header">
+                    <h3><i class="fas fa-history"></i> Chat History</h3>
+                    <button class="new-chat-btn" onclick="createNewChat()">
+                        <i class="fas fa-plus"></i> New
+                    </button>
+                </div>
+                <div class="history-list" id="historyList">
+                    <div class="history-empty">
+                        <i class="fas fa-comments"></i>
+                        <p>No previous chats yet</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat Container -->
+            <div class="chat-container">
+                <div class="chat-header">
+                    <div class="header-left">
+                        <h1><i class="fas fa-robot"></i> MG Chatbot</h1>
+                        <p>🚀 Always here to help</p>
+                    </div>
+                    
+                    <div class="header-center">
+                        <button class="sidebar-toggle-btn" onclick="toggleHistorySidebar()">
+                            <i class="fas fa-history"></i> History
+                        </button>
+                        <button class="new-chat-btn" onclick="createNewChat()">
+                            <i class="fas fa-plus"></i> New Chat
+                        </button>
+                        <a href="/" class="back-dashboard">
+                            <i class="fas fa-home"></i> Dashboard
+                        </a>
+                    </div>
+                </div>
+
+                <div class="messages-container" id="messagesContainer">
+                    <div class="no-messages">
+                        <i class="fas fa-comments"></i>
+                        <p>👋 Welcome to MG Chatbot!</p>
+                        <p style="font-size: 13px; opacity: 0.7;">Start a conversation and let's chat! 💬</p>
+                    </div>
+                </div>
+
+                <div class="input-section">
+                    <div class="file-upload-container">
+                        <input type="file" id="fileInput" hidden accept=".txt,.pdf,.py,.js,.html,.css,.md">
+                        <button class="attach-btn" onclick="document.getElementById('fileInput').click()" title="Attach file">
+                            <i class="fas fa-paperclip"></i>
+                        </button>
+                        <span id="fileName" class="file-name"></span>
+                    </div>
+                    <div class="input-group">
+                        <button id="voiceInputBtn" class="voice-btn" onclick="toggleVoiceRecording()" title="Voice Input">
+                            <i class="fas fa-microphone"></i>
+                        </button>
+                        <input type="text" id="messageInput" placeholder="Type your message here..." autocomplete="off" />
+                        <button id="sendBtn" onclick="sendMessage()">
+                            <i class="fas fa-paper-plane"></i> Send
+                        </button>
+                    </div>
+                    <button class="clear-btn" onclick="clearAllChats()" title="Clear all history">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+{% endblock %}
+
+{% block extra_js %}
+<script>
+
+</script>
+{% endblock %}

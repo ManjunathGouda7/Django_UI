@@ -1,0 +1,23 @@
+{
+    "PFOData":{
+        "PFOMain":[
+            {"$match": {
+                "Board":{"$in":["TPR113_GTPT"]},
+                "DUT":{"$in":["TPR"]},
+                "RUN":{"$in":["RUN1"]},
+                "CRX":{"$in":["CRX_174"]},
+                "Position":{"$in":[22]},
+                "PowerMode":{"$in":["HPM"]},
+                "Power":{"$in":["ALL"]}
+            }},
+            {
+                "$project": {
+                "_id":0,
+                "Rectified Power [W]":1,
+                "PFO [mW]":1,
+                "Board":1
+                }
+            }
+            ]
+    }
+}

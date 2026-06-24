@@ -1,0 +1,106 @@
+{% extends "grl_api/base.html" %}
+{% load static %}
+
+{% block title %}Centralized Automation Platform - GRL{% endblock %}
+
+{% block content %}
+    <div class="dashboard-container">
+        
+        <!-- Row 1 -->
+        <div class="dashboard-row">
+            <div class="card">
+                <div class="card-content">
+                    <img src="{% static 'images/UIsymbol.png' %}" alt="UI Checks" class="card-img">
+                    <div class="card-text">
+                        <h3>UI Checks</h3>
+                        <p>A single platform for performing UI checks across all products, complete reporting, and BI analysis.</p>
+                        <button class="start-btn" onclick="location.href='/UIhome/'">Start</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-content">
+                    <img src="{% static 'images/CTSValidation.png' %}" alt="Product Validation" class="card-img">
+                    <div class="card-text">
+                        <h3>Product Validation</h3>
+                        <p>Product validation covers online test case execution for MPP (TPR, TPT), C3 (TPR, TPT), C2, and VDPWR products, as well as offline CTS validation.</p>
+                        <button class="start-btn" onclick="alert('Coming soon!')">Start</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-content">
+                    <img src="{% static 'images/PositionTool.png' %}" alt="Position Tool" class="card-img">
+                    <div class="card-text">
+                        <h3>Position Tool Setup</h3>
+                        <p>Hardware tool setup for coil handling with auto offset adjustments during test execution.</p>
+                        <button class="start-btn" onclick="alert('Coming soon!')">Start</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 2 -->
+        <div class="dashboard-row">
+            <div class="card">
+                <div class="card-content">
+                    <img src="{% static 'images/PFOsymbol.png' %}" alt="PFO" class="card-img">
+                    <div class="card-text">
+                        <h3>PFO Automation</h3>
+                        <p>PFO data collection and charts, exclusively for MPP production boards.</p>
+                        <button class="start-btn" onclick="location.href='/PFO/'">Start</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-content">
+                    <img src="{% static 'images/taskssymbol.png' %}" alt="Tasks" class="card-img">
+                    <div class="card-text">
+                        <h3>Issues / Tasks Tracking</h3>
+                        <p>Report bugs or suggest new features for the automation tools.</p>
+                        <button class="start-btn" onclick="location.href='/IssuesAndTasksTracking/'">Start</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-content">
+                    <img src="{% static 'images/chatbotsymbol.png' %}" alt="Chatbot" class="card-img">
+                    <div class="card-text">
+                        <h3>Chatbot</h3>
+                        <p>Document-based chatbot for product CTS queries; upload a document to get answers.</p>
+                        <button class="start-btn" onclick="location.href='/ChatBot/'">Start</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 3 -->
+        <div class="dashboard-row">
+            <div class="card">
+                <div class="card-content">
+                    <img src="{% static 'images/docssymbol.png' %}" alt="Documents" class="card-img">
+                    <div class="card-text">
+                        <h3>User Guide / Document Center</h3>
+                        <p>Automation Tool Document Repository</p>
+                        <button class="start-btn" onclick="alert('Coming soon!')">Start</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-content">
+                    <img src="{% static 'images/settingssymbol.png' %}" alt="Settings" class="card-img">
+                    <div class="card-text">
+                        <h3>Tool Settings</h3>
+                        <p>Manage access, tool options, and other configurations.</p>
+                        <button class="start-btn" onclick="alert('Coming soon!')">Start</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

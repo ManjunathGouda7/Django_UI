@@ -1,0 +1,820 @@
+{% extends "grl_api/base.html" %}
+{% load static %}
+
+{% block title %}Issues & Tasks Tracking - GRL{% endblock %}
+
+{% block extra_css %}
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+<link rel="stylesheet" href="{% static 'css/issues.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="issues-container">
+        <!-- Header -->
+        <div class="issues-header">
+            <h1>
+                <i class="fas fa-tasks"></i>
+                Issues & Tasks Tracking
+                <span style="font-size: 14px; font-weight: 400; color: #6c757d; margin-left: 10px;">
+                    <i class="fas fa-asterisk" style="color: #dc3545; font-size: 8px;"></i>
+                    Real-time tracking
+                </span>
+            </h1>
+            <div class="issues-actions">
+                <button class="btn-primary" onclick="openCreateIssueModal()">
+                    <i class="fas fa-plus"></i> New Issue
+                </button>
+                <button class="btn-success" onclick="openCreateTaskModal()">
+                    <i class="fas fa-plus"></i> New Task
+                </button>
+                <button class="btn-secondary" onclick="refreshData()">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+                <button class="btn-outline" onclick="exportData()">
+                    <i class="fas fa-download"></i> Export
+                </button>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card primary">
+                <i class="fas fa-exclamation-circle stat-icon"></i>
+                <div class="stat-number" id="totalIssues">0</div>
+                <div class="stat-label">Total Issues</div>
+            </div>
+            <div class="stat-card warning">
+                <i class="fas fa-spinner stat-icon"></i>
+                <div class="stat-number" id="openIssues">0</div>
+                <div class="stat-label">Open Issues</div>
+            </div>
+            <div class="stat-card danger">
+                <i class="fas fa-exclamation-triangle stat-icon"></i>
+                <div class="stat-number" id="criticalIssues">0</div>
+                <div class="stat-label">Critical Issues</div>
+            </div>
+            <div class="stat-card info">
+                <i class="fas fa-tasks stat-icon"></i>
+                <div class="stat-number" id="totalTasks">0</div>
+                <div class="stat-label">Total Tasks</div>
+            </div>
+            <div class="stat-card success">
+                <i class="fas fa-check-circle stat-icon"></i>
+                <div class="stat-number" id="completedTasks">0</div>
+                <div class="stat-label">Completed Tasks</div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="issues-tabs">
+            <button class="active" data-tab="issues" onclick="switchTab('issues')">
+                <i class="fas fa-bug"></i> Issues
+                <span id="issuesCount" style="background: rgba(255,255,255,0.2); padding: 0 8px; border-radius: 12px; font-size: 12px;">0</span>
+            </button>
+            <button data-tab="tasks" onclick="switchTab('tasks')">
+                <i class="fas fa-list-check"></i> Tasks
+                <span id="tasksCount" style="background: rgba(255,255,255,0.2); padding: 0 8px; border-radius: 12px; font-size: 12px;">0</span>
+            </button>
+            <button data-tab="analytics" onclick="switchTab('analytics')">
+                <i class="fas fa-chart-bar"></i> Analytics
+            </button>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-bar" id="filterBar">
+            <input type="text" id="searchInput" placeholder="🔍 Search by title or description..." onkeyup="applyFilters()" />
+            <select id="statusFilter" onchange="applyFilters()">
+                <option value="all">All Status</option>
+                <option value="open">Open</option>
+                <option value="in_progress">In Progress</option>
+                <option value="review">Review</option>
+                <option value="closed">Closed</option>
+                <option value="blocked">Blocked</option>
+                <option value="pending">Pending</option>
+                <option value="completed">Completed</option>
+            </select>
+            <select id="priorityFilter" onchange="applyFilters()">
+                <option value="all">All Priority</option>
+                <option value="critical">Critical</option>
+                <option value="high">High</option>
+                <option value="medium">Medium</option>
+                <option value="low">Low</option>
+            </select>
+            <select id="assignedFilter" onchange="applyFilters()">
+                <option value="all">All Assignees</option>
+                <option value="John Doe">John Doe</option>
+                <option value="Alice Johnson">Alice Johnson</option>
+                <option value="Sarah Lee">Sarah Lee</option>
+                <option value="Bob Wilson">Bob Wilson</option>
+            </select>
+        </div>
+
+        <!-- Issues Table -->
+        <div class="issues-table-wrapper" id="issuesTableWrapper">
+            <div id="loadingState" class="loading">
+                <i class="fas fa-spinner spinner"></i>
+                Loading issues...
+            </div>
+            <div id="emptyState" class="empty-state" style="display: none;">
+                <i class="fas fa-inbox"></i>
+                <h3>No items found</h3>
+                <p>Try adjusting your filters or create a new issue/task.</p>
+            </div>
+            <table class="issues-table" id="issuesTable" style="display: none;">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Title</th>
+                        <th>Status</th>
+                        <th>Priority</th>
+                        <th>Assigned To</th>
+                        <th>Created</th>
+                        <th>Due Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="issuesTableBody">
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Tasks Table (hidden by default) -->
+        <div class="issues-table-wrapper" id="tasksTableWrapper" style="display: none;">
+            <table class="issues-table" id="tasksTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Title</th>
+                        <th>Status</th>
+                        <th>Priority</th>
+                        <th>Assigned To</th>
+                        <th>Progress</th>
+                        <th>Due Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="tasksTableBody">
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Analytics Tab (hidden by default) -->
+        <div id="analyticsTab" style="display: none;">
+            <div class="stats-grid" style="margin-top: 20px;">
+                <div class="stat-card primary">
+                    <div class="stat-number" id="analyticsTotalIssues">0</div>
+                    <div class="stat-label">Total Issues</div>
+                </div>
+                <div class="stat-card success">
+                    <div class="stat-number" id="analyticsClosedIssues">0</div>
+                    <div class="stat-label">Closed Issues</div>
+                </div>
+                <div class="stat-card warning">
+                    <div class="stat-number" id="analyticsOpenIssues">0</div>
+                    <div class="stat-label">Open Issues</div>
+                </div>
+                <div class="stat-card info">
+                    <div class="stat-number" id="analyticsAvgProgress">0%</div>
+                    <div class="stat-label">Average Task Progress</div>
+                </div>
+            </div>
+            <div style="background: white; border-radius: 12px; padding: 20px; margin-top: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+                <h3 style="margin-top: 0;">Priority Breakdown</h3>
+                <div id="priorityBreakdown">
+                    <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-top: 15px;">
+                        <div><span style="color: #dc3545;">●</span> Critical: <strong id="pCritical">0</strong></div>
+                        <div><span style="color: #ffc107;">●</span> High: <strong id="pHigh">0</strong></div>
+                        <div><span style="color: #17a2b8;">●</span> Medium: <strong id="pMedium">0</strong></div>
+                        <div><span style="color: #28a745;">●</span> Low: <strong id="pLow">0</strong></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- MODALS -->
+    <!-- ============================================ -->
+
+    <!-- Create Issue Modal -->
+    <div class="modal-overlay" id="createIssueModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-bug" style="color: #6c63ff;"></i> Create New Issue</h2>
+                <button class="modal-close" onclick="closeModal('createIssueModal')">&times;</button>
+            </div>
+            <form id="createIssueForm" onsubmit="submitIssue(event)">
+                <div class="form-group">
+                    <label>Title *</label>
+                    <input type="text" id="issueTitle" required placeholder="Enter issue title..." />
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="issueDescription" placeholder="Describe the issue in detail..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="issueStatus">
+                        <option value="open">Open</option>
+                        <option value="in_progress">In Progress</option>
+                        <option value="review">Under Review</option>
+                        <option value="blocked">Blocked</option>
+                        <option value="closed">Closed</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Priority</label>
+                    <select id="issuePriority">
+                        <option value="critical">Critical</option>
+                        <option value="high">High</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="low">Low</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Assigned To</label>
+                    <select id="issueAssigned">
+                        <option value="Unassigned">Unassigned</option>
+                        <option value="John Doe">John Doe</option>
+                        <option value="Alice Johnson">Alice Johnson</option>
+                        <option value="Sarah Lee">Sarah Lee</option>
+                        <option value="Bob Wilson">Bob Wilson</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Due Date</label>
+                    <input type="date" id="issueDueDate" />
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" onclick="closeModal('createIssueModal')">Cancel</button>
+                    <button type="submit" class="btn-primary"><i class="fas fa-save"></i> Create Issue</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Create Task Modal -->
+    <div class="modal-overlay" id="createTaskModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-list-check" style="color: #28a745;"></i> Create New Task</h2>
+                <button class="modal-close" onclick="closeModal('createTaskModal')">&times;</button>
+            </div>
+            <form id="createTaskForm" onsubmit="submitTask(event)">
+                <div class="form-group">
+                    <label>Title *</label>
+                    <input type="text" id="taskTitle" required placeholder="Enter task title..." />
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="taskDescription" placeholder="Describe the task in detail..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="taskStatus">
+                        <option value="pending">Pending</option>
+                        <option value="in_progress">In Progress</option>
+                        <option value="review">Under Review</option>
+                        <option value="completed">Completed</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Priority</label>
+                    <select id="taskPriority">
+                        <option value="critical">Critical</option>
+                        <option value="high">High</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="low">Low</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Assigned To</label>
+                    <select id="taskAssigned">
+                        <option value="Unassigned">Unassigned</option>
+                        <option value="John Doe">John Doe</option>
+                        <option value="Alice Johnson">Alice Johnson</option>
+                        <option value="Sarah Lee">Sarah Lee</option>
+                        <option value="Bob Wilson">Bob Wilson</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Progress (%)</label>
+                    <input type="number" id="taskProgress" min="0" max="100" value="0" />
+                </div>
+                <div class="form-group">
+                    <label>Due Date</label>
+                    <input type="date" id="taskDueDate" />
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" onclick="closeModal('createTaskModal')">Cancel</button>
+                    <button type="submit" class="btn-success"><i class="fas fa-save"></i> Create Task</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- JAVASCRIPT -->
+    <!-- ============================================ -->
+    
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ============================================
+        // API BASE URL - FIXED
+        // ============================================
+        const API_BASE = '/api/v1/IssuesAndTasksTracking';
+
+        // ============================================
+        // STATE
+        // ============================================
+        let currentTab = 'issues';
+        let issuesData = [];
+        let tasksData = [];
+        let currentPage = 1;
+        const perPage = 20;
+
+        // ============================================
+        // API CALLS
+        // ============================================
+        async function fetchIssues() {
+            try {
+                const params = new URLSearchParams({
+                    page: currentPage,
+                    per_page: perPage,
+                    search: document.getElementById('searchInput').value,
+                    status: document.getElementById('statusFilter').value,
+                    priority: document.getElementById('priorityFilter').value,
+                    assigned_to: document.getElementById('assignedFilter').value
+                });
+                
+                const response = await fetch(`${API_BASE}/api/issues/?${params}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    issuesData = data.issues;
+                    renderIssues(data);
+                    updateStats();
+                }
+            } catch (error) {
+                console.error('Error fetching issues:', error);
+                showError('Failed to load issues');
+            }
+        }
+
+        async function fetchTasks() {
+            try {
+                const params = new URLSearchParams({
+                    page: currentPage,
+                    per_page: perPage,
+                    search: document.getElementById('searchInput').value,
+                    status: document.getElementById('statusFilter').value,
+                    priority: document.getElementById('priorityFilter').value,
+                    assigned_to: document.getElementById('assignedFilter').value
+                });
+                
+                const response = await fetch(`${API_BASE}/api/tasks/?${params}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    tasksData = data.tasks;
+                    renderTasks(data);
+                    updateStats();
+                }
+            } catch (error) {
+                console.error('Error fetching tasks:', error);
+                showError('Failed to load tasks');
+            }
+        }
+
+        async function fetchAnalytics() {
+            try {
+                const [issuesRes, tasksRes] = await Promise.all([
+                    fetch(`${API_BASE}/api/issues/analytics/`),
+                    fetch(`${API_BASE}/api/tasks/analytics/`)
+                ]);
+                
+                const issuesData = await issuesRes.json();
+                const tasksData = await tasksRes.json();
+                
+                if (issuesData.success && tasksData.success) {
+                    updateAnalytics(issuesData.analytics, tasksData.analytics);
+                }
+            } catch (error) {
+                console.error('Error fetching analytics:', error);
+            }
+        }
+
+        // ============================================
+        // RENDER FUNCTIONS
+        // ============================================
+        function renderIssues(data) {
+            const tbody = document.getElementById('issuesTableBody');
+            const table = document.getElementById('issuesTable');
+            const loading = document.getElementById('loadingState');
+            const empty = document.getElementById('emptyState');
+            
+            loading.style.display = 'none';
+            
+            if (data.issues.length === 0) {
+                table.style.display = 'none';
+                empty.style.display = 'block';
+                return;
+            }
+            
+            table.style.display = '';
+            empty.style.display = 'none';
+            
+            tbody.innerHTML = data.issues.map(issue => `
+                <tr>
+                    <td><strong>#${issue.id}</strong></td>
+                    <td>
+                        <strong>${escapeHtml(issue.title)}</strong>
+                        <div style="font-size: 12px; color: #6c757d;">${escapeHtml(issue.description.substring(0, 60))}${issue.description.length > 60 ? '...' : ''}</div>
+                    </td>
+                    <td><span class="status-badge ${issue.status}">${formatStatus(issue.status)}</span></td>
+                    <td><span class="priority-badge ${issue.priority}">${formatPriority(issue.priority)}</span></td>
+                    <td>${escapeHtml(issue.assigned_to)}</td>
+                    <td style="font-size: 12px;">${formatDate(issue.created_at)}</td>
+                    <td style="font-size: 12px;">${issue.due_date ? formatDate(issue.due_date) : '-'}</td>
+                    <td>
+                        <div class="table-actions">
+                            <button class="view-btn" onclick="viewIssue(${issue.id})" title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="edit-btn" onclick="editIssue(${issue.id})" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="delete-btn" onclick="deleteIssue(${issue.id})" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+            
+            document.getElementById('issuesCount').textContent = data.pagination.total;
+        }
+
+        function renderTasks(data) {
+            const tbody = document.getElementById('tasksTableBody');
+            const table = document.getElementById('tasksTable');
+            const loading = document.getElementById('loadingState');
+            const empty = document.getElementById('emptyState');
+            
+            loading.style.display = 'none';
+            
+            if (data.tasks.length === 0) {
+                table.style.display = 'none';
+                empty.style.display = 'block';
+                return;
+            }
+            
+            table.style.display = '';
+            empty.style.display = 'none';
+            
+            tbody.innerHTML = data.tasks.map(task => {
+                const progressClass = task.progress >= 100 ? 'completed' : (task.progress > 0 ? 'in_progress' : 'pending');
+                return `
+                    <tr>
+                        <td><strong>#${task.id}</strong></td>
+                        <td>
+                            <strong>${escapeHtml(task.title)}</strong>
+                            <div style="font-size: 12px; color: #6c757d;">${escapeHtml(task.description.substring(0, 60))}${task.description.length > 60 ? '...' : ''}</div>
+                        </td>
+                        <td><span class="status-badge ${task.status}">${formatStatus(task.status)}</span></td>
+                        <td><span class="priority-badge ${task.priority}">${formatPriority(task.priority)}</span></td>
+                        <td>${escapeHtml(task.assigned_to)}</td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="font-size: 12px; min-width: 35px;">${task.progress}%</span>
+                                <div class="progress-bar">
+                                    <div class="progress-fill ${progressClass}" style="width: ${task.progress}%;"></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="font-size: 12px;">${task.due_date ? formatDate(task.due_date) : '-'}</td>
+                        <td>
+                            <div class="table-actions">
+                                <button class="view-btn" onclick="viewTask(${task.id})" title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="edit-btn" onclick="editTask(${task.id})" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="delete-btn" onclick="deleteTask(${task.id})" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+            
+            document.getElementById('tasksCount').textContent = data.pagination.total;
+        }
+
+        // ============================================
+        // STATS UPDATE
+        // ============================================
+        function updateStats() {
+            // Issues stats
+            const totalIssues = issuesData.length;
+            const openIssues = issuesData.filter(i => i.status === 'open' || i.status === 'in_progress').length;
+            const criticalIssues = issuesData.filter(i => i.priority === 'critical' && i.status !== 'closed').length;
+            
+            document.getElementById('totalIssues').textContent = totalIssues;
+            document.getElementById('openIssues').textContent = openIssues;
+            document.getElementById('criticalIssues').textContent = criticalIssues;
+            
+            // Tasks stats
+            const totalTasks = tasksData.length;
+            const completedTasks = tasksData.filter(t => t.status === 'completed').length;
+            
+            document.getElementById('totalTasks').textContent = totalTasks;
+            document.getElementById('completedTasks').textContent = completedTasks;
+        }
+
+        // ============================================
+        // ANALYTICS UPDATE
+        // ============================================
+        function updateAnalytics(issues, tasks) {
+            document.getElementById('analyticsTotalIssues').textContent = issues.total || 0;
+            document.getElementById('analyticsClosedIssues').textContent = issues.closed || 0;
+            document.getElementById('analyticsOpenIssues').textContent = issues.open || 0;
+            document.getElementById('analyticsAvgProgress').textContent = `${Math.round(tasks.avg_progress || 0)}%`;
+            
+            document.getElementById('pCritical').textContent = issues.critical || 0;
+            document.getElementById('pHigh').textContent = issues.high || 0;
+            document.getElementById('pMedium').textContent = issues.medium || 0;
+            document.getElementById('pLow').textContent = issues.low || 0;
+        }
+
+        // ============================================
+        // CRUD OPERATIONS
+        // ============================================
+        async function submitIssue(e) {
+            e.preventDefault();
+            
+            const data = {
+                title: document.getElementById('issueTitle').value,
+                description: document.getElementById('issueDescription').value,
+                status: document.getElementById('issueStatus').value,
+                priority: document.getElementById('issuePriority').value,
+                assigned_to: document.getElementById('issueAssigned').value,
+                due_date: document.getElementById('issueDueDate').value || null
+            };
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/issues/create/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    closeModal('createIssueModal');
+                    document.getElementById('createIssueForm').reset();
+                    showSuccess('Issue created successfully!');
+                    refreshData();
+                } else {
+                    showError(result.error || 'Failed to create issue');
+                }
+            } catch (error) {
+                console.error('Error creating issue:', error);
+                showError('Failed to create issue');
+            }
+        }
+
+        async function submitTask(e) {
+            e.preventDefault();
+            
+            const data = {
+                title: document.getElementById('taskTitle').value,
+                description: document.getElementById('taskDescription').value,
+                status: document.getElementById('taskStatus').value,
+                priority: document.getElementById('taskPriority').value,
+                assigned_to: document.getElementById('taskAssigned').value,
+                progress: parseInt(document.getElementById('taskProgress').value) || 0,
+                due_date: document.getElementById('taskDueDate').value || null
+            };
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/tasks/create/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    closeModal('createTaskModal');
+                    document.getElementById('createTaskForm').reset();
+                    showSuccess('Task created successfully!');
+                    refreshData();
+                } else {
+                    showError(result.error || 'Failed to create task');
+                }
+            } catch (error) {
+                console.error('Error creating task:', error);
+                showError('Failed to create task');
+            }
+        }
+
+        async function deleteIssue(id) {
+            if (!confirm('Are you sure you want to delete this issue?')) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/issues/${id}/delete/`, {
+                    method: 'DELETE'
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showSuccess('Issue deleted successfully!');
+                    refreshData();
+                } else {
+                    showError(result.error || 'Failed to delete issue');
+                }
+            } catch (error) {
+                console.error('Error deleting issue:', error);
+                showError('Failed to delete issue');
+            }
+        }
+
+        async function deleteTask(id) {
+            if (!confirm('Are you sure you want to delete this task?')) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/tasks/${id}/delete/`, {
+                    method: 'DELETE'
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showSuccess('Task deleted successfully!');
+                    refreshData();
+                } else {
+                    showError(result.error || 'Failed to delete task');
+                }
+            } catch (error) {
+                console.error('Error deleting task:', error);
+                showError('Failed to delete task');
+            }
+        }
+
+        // ============================================
+        // UI HELPERS
+        // ============================================
+        function switchTab(tab) {
+            currentTab = tab;
+            
+            document.querySelectorAll('.issues-tabs button').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.tab === tab);
+            });
+            
+            document.getElementById('issuesTableWrapper').style.display = tab === 'issues' ? '' : 'none';
+            document.getElementById('tasksTableWrapper').style.display = tab === 'tasks' ? '' : 'none';
+            document.getElementById('analyticsTab').style.display = tab === 'analytics' ? '' : 'none';
+            document.getElementById('filterBar').style.display = tab === 'analytics' ? 'none' : '';
+            
+            if (tab === 'analytics') {
+                fetchAnalytics();
+            }
+        }
+
+        function applyFilters() {
+            if (currentTab === 'issues') {
+                fetchIssues();
+            } else if (currentTab === 'tasks') {
+                fetchTasks();
+            }
+        }
+
+        function refreshData() {
+            if (currentTab === 'issues') {
+                fetchIssues();
+            } else if (currentTab === 'tasks') {
+                fetchTasks();
+            }
+            fetchAnalytics();
+        }
+
+        function exportData() {
+            const url = currentTab === 'issues' 
+                ? `${API_BASE}/api/issues/export/` 
+                : `${API_BASE}/api/tasks/export/`;
+            window.open(url, '_blank');
+        }
+
+        // Modal helpers
+        function openCreateIssueModal() {
+            document.getElementById('createIssueModal').classList.add('active');
+        }
+
+        function openCreateTaskModal() {
+            document.getElementById('createTaskModal').classList.add('active');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        // View/Edit placeholders
+        function viewIssue(id) {
+            alert(`View issue #${id} - This will open a detailed view`);
+        }
+
+        function viewTask(id) {
+            alert(`View task #${id} - This will open a detailed view`);
+        }
+
+        function editIssue(id) {
+            alert(`Edit issue #${id} - This will open an edit modal`);
+        }
+
+        function editTask(id) {
+            alert(`Edit task #${id} - This will open an edit modal`);
+        }
+
+        // Utility functions
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatStatus(status) {
+            const statusMap = {
+                'open': 'Open',
+                'in_progress': 'In Progress',
+                'review': 'Under Review',
+                'closed': 'Closed',
+                'blocked': 'Blocked',
+                'pending': 'Pending',
+                'completed': 'Completed',
+                'cancelled': 'Cancelled'
+            };
+            return statusMap[status] || status;
+        }
+
+        function formatPriority(priority) {
+            const priorityMap = {
+                'critical': 'Critical',
+                'high': 'High',
+                'medium': 'Medium',
+                'low': 'Low'
+            };
+            return priorityMap[priority] || priority;
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+
+        function showSuccess(message) {
+            alert('✅ ' + message);
+        }
+
+        function showError(message) {
+            alert('❌ ' + message);
+        }
+
+        // Close modals on overlay click
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                }
+            });
+        });
+
+        // ============================================
+        // INIT
+        // ============================================
+        document.addEventListener('DOMContentLoaded', () => {
+            // Show loading
+            document.getElementById('loadingState').style.display = 'block';
+            
+            // Load initial data
+            fetchIssues();
+            fetchTasks();
+            fetchAnalytics();
+            
+            // Set default date for due date fields
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('issueDueDate').value = today;
+            document.getElementById('taskDueDate').value = today;
+        });
+</script>
+{% endblock %}

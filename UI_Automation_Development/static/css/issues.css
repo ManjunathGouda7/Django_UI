@@ -1,0 +1,556 @@
+/* Additional styles specific to issues/tasks page */
+        .issues-container {
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .issues-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .issues-header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .issues-header h1 i {
+            color: #6c63ff;
+        }
+        
+        .issues-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .issues-actions button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #6c63ff, #5a52d5);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(108, 99, 255, 0.4);
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+        
+        .btn-outline {
+            background: transparent;
+            border: 2px solid #6c63ff;
+            color: #6c63ff;
+        }
+        
+        .btn-outline:hover {
+            background: #6c63ff;
+            color: white;
+        }
+        
+        /* Tabs */
+        .issues-tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #e9ecef;
+            background: white;
+            border-radius: 12px;
+            padding: 5px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        
+        .issues-tabs button {
+            padding: 12px 24px;
+            border: none;
+            background: transparent;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            color: #6c757d;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .issues-tabs button:hover {
+            background: #f8f9fa;
+            color: #333;
+        }
+        
+        .issues-tabs button.active {
+            background: linear-gradient(135deg, #6c63ff, #5a52d5);
+            color: white;
+            box-shadow: 0 4px 12px rgba(108, 99, 255, 0.3);
+        }
+        
+        .issues-tabs button i {
+            font-size: 16px;
+        }
+        
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+        
+        .stat-card .stat-number {
+            font-size: 32px;
+            font-weight: 700;
+            color: #333;
+        }
+        
+        .stat-card .stat-label {
+            font-size: 14px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        
+        .stat-card .stat-icon {
+            float: right;
+            font-size: 28px;
+            opacity: 0.3;
+        }
+        
+        .stat-card.primary .stat-number { color: #6c63ff; }
+        .stat-card.success .stat-number { color: #28a745; }
+        .stat-card.warning .stat-number { color: #ffc107; }
+        .stat-card.danger .stat-number { color: #dc3545; }
+        .stat-card.info .stat-number { color: #17a2b8; }
+        
+        /* Filter Bar */
+        .filter-bar {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            padding: 15px 20px;
+            background: white;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            align-items: center;
+        }
+        
+        .filter-bar input,
+        .filter-bar select {
+            padding: 8px 14px;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+        
+        .filter-bar input:focus,
+        .filter-bar select:focus {
+            outline: none;
+            border-color: #6c63ff;
+            box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.1);
+            background: white;
+        }
+        
+        .filter-bar input {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        /* Table */
+        .issues-table-wrapper {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        
+        .issues-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .issues-table thead {
+            background: #f8f9fa;
+        }
+        
+        .issues-table th {
+            padding: 14px 16px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 600;
+            color: #495057;
+            border-bottom: 2px solid #e9ecef;
+            white-space: nowrap;
+        }
+        
+        .issues-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #f1f3f5;
+            font-size: 14px;
+            vertical-align: middle;
+        }
+        
+        .issues-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .issues-table .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            display: inline-block;
+        }
+        
+        .status-badge.open { background: #cce5ff; color: #004085; }
+        .status-badge.in_progress { background: #fff3cd; color: #856404; }
+        .status-badge.review { background: #d4edda; color: #155724; }
+        .status-badge.closed { background: #e2e3e5; color: #383d41; }
+        .status-badge.blocked { background: #f8d7da; color: #721c24; }
+        .status-badge.pending { background: #f8f9fa; color: #6c757d; }
+        .status-badge.completed { background: #d4edda; color: #155724; }
+        .status-badge.cancelled { background: #f8d7da; color: #721c24; }
+        
+        .priority-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            display: inline-block;
+        }
+        
+        .priority-badge.critical { background: #f8d7da; color: #721c24; }
+        .priority-badge.high { background: #fff3cd; color: #856404; }
+        .priority-badge.medium { background: #cce5ff; color: #004085; }
+        .priority-badge.low { background: #d4edda; color: #155724; }
+        
+        .table-actions {
+            display: flex;
+            gap: 6px;
+        }
+        
+        .table-actions button {
+            padding: 4px 8px;
+            border: none;
+            background: transparent;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 13px;
+        }
+        
+        .table-actions .edit-btn { color: #6c63ff; }
+        .table-actions .edit-btn:hover { background: #e8e6ff; }
+        
+        .table-actions .delete-btn { color: #dc3545; }
+        .table-actions .delete-btn:hover { background: #f8d7da; }
+        
+        .table-actions .view-btn { color: #17a2b8; }
+        .table-actions .view-btn:hover { background: #d1ecf1; }
+        
+        /* Progress bar for tasks */
+        .progress-bar {
+            width: 100px;
+            height: 6px;
+            background: #e9ecef;
+            border-radius: 3px;
+            overflow: hidden;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        
+        .progress-bar .progress-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.6s ease;
+        }
+        
+        .progress-fill.completed { background: #28a745; }
+        .progress-fill.in_progress { background: #ffc107; }
+        .progress-fill.pending { background: #6c757d; }
+        
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-overlay.active {
+            display: flex;
+        }
+        
+        .modal {
+            background: white;
+            border-radius: 16px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .modal-header h2 {
+            margin: 0;
+            font-size: 22px;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #6c757d;
+            transition: all 0.2s ease;
+        }
+        
+        .modal-close:hover {
+            color: #dc3545;
+            transform: rotate(90deg);
+        }
+        
+        .modal .form-group {
+            margin-bottom: 18px;
+        }
+        
+        .modal .form-group label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 5px;
+            font-size: 14px;
+            color: #495057;
+        }
+        
+        .modal .form-group input,
+        .modal .form-group select,
+        .modal .form-group textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        .modal .form-group input:focus,
+        .modal .form-group select:focus,
+        .modal .form-group textarea:focus {
+            outline: none;
+            border-color: #6c63ff;
+            box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.1);
+        }
+        
+        .modal .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .modal .form-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 25px;
+        }
+        
+        .modal .form-actions button {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .modal .form-actions .btn-cancel {
+            background: #e9ecef;
+            color: #495057;
+        }
+        
+        .modal .form-actions .btn-cancel:hover {
+            background: #dee2e6;
+        }
+        
+        /* Loading state */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+        
+        .loading i {
+            font-size: 40px;
+            margin-bottom: 15px;
+            display: block;
+        }
+        
+        .loading .spinner {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+        
+        .empty-state i {
+            font-size: 64px;
+            opacity: 0.3;
+            margin-bottom: 20px;
+            display: block;
+        }
+        
+        .empty-state h3 {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .issues-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .issues-actions {
+                width: 100%;
+            }
+            
+            .issues-actions button {
+                flex: 1;
+                justify-content: center;
+            }
+            
+            .issues-tabs {
+                overflow-x: auto;
+                flex-wrap: nowrap;
+            }
+            
+            .issues-tabs button {
+                white-space: nowrap;
+                padding: 10px 16px;
+                font-size: 13px;
+            }
+            
+            .filter-bar {
+                flex-direction: column;
+            }
+            
+            .filter-bar input {
+                min-width: unset;
+                width: 100%;
+            }
+            
+            .issues-table-wrapper {
+                overflow-x: auto;
+            }
+            
+            .issues-table {
+                font-size: 13px;
+            }
+            
+            .issues-table th,
+            .issues-table td {
+                padding: 10px 12px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .modal {
+                padding: 20px;
+            }
+        }

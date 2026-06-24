@@ -1,0 +1,434 @@
+:root {
+    --primary: #2c3e50;
+    --secondary: #3498db;
+    --accent: #e74c3c;
+    
+    --dark-bg: linear-gradient(
+        135deg,
+        #0f0c29,
+        #302b63,
+        #24243e
+    );
+    
+    --card-bg: rgba(255,255,255,0.08);
+    
+    --gradient-1: #ff6ec4;
+    --gradient-2: #7873f5;
+    
+    --text-primary: #ffffff;
+    --text-secondary: #d6d6d6;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+    min-height: 100vh;
+    background: var(--dark-bg);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+    color: white;
+    padding: 20px;
+}
+
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* ================= HEADER ================= */
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 35px;
+    margin-bottom: 35px;
+    background: rgba(20, 20, 30, 0.8);
+    backdrop-filter: blur(15px);
+    border-radius: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+}
+
+.header img {
+    width: 150px;
+    height: auto;
+}
+
+.header-title {
+    text-align: center;
+    flex: 1;
+}
+
+.header-title h2 {
+    font-size: 34px;
+    font-weight: 700;
+    color: white;
+}
+
+.user-section {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    color: #d0d0d0;
+    font-size: 14px;
+}
+
+/* ================= DASHBOARD ================= */
+.dashboard-container {
+    max-width: 1700px;
+    margin: auto;
+}
+
+.dashboard-row {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 30px;
+    margin-bottom: 30px;
+}
+
+/* ================= CARD ================= */
+.card {
+    width: 420px;
+    min-height: 250px;
+    background: var(--card-bg);
+    backdrop-filter: blur(15px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+    position: relative;
+    transition: all 0.35s ease;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        135deg,
+        rgba(255, 110, 196, 0.08),
+        rgba(120, 115, 245, 0.08)
+    );
+    opacity: 0;
+    transition: 0.3s;
+}
+
+.card:hover {
+    transform: translateY(-10px);
+    border-color: rgba(255, 110, 196, 0.4);
+    box-shadow: 
+        0 0 25px rgba(255, 110, 196, 0.15),
+        0 20px 50px rgba(0, 0, 0, 0.45);
+}
+
+.card:hover::before {
+    opacity: 1;
+}
+
+.card-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 28px;
+}
+
+.card-img {
+    width: 90px;
+    height: 90px;
+    object-fit: contain;
+    padding: 10px;
+    margin-bottom: 20px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.card-text {
+    flex: 1;
+}
+
+.card-text h3 {
+    font-size: 24px;
+    margin-bottom: 12px;
+    color: #ffffff;
+}
+
+.card-text p {
+    color: var(--text-secondary);
+    line-height: 1.7;
+    font-size: 15px;
+    margin-bottom: 25px;
+}
+
+/* ================= BUTTONS ================= */
+.start-btn, .back-btn {
+    width: 100%;
+    margin-top: auto;
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(
+        135deg,
+        var(--gradient-1),
+        var(--gradient-2)
+    );
+    color: white;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .3s ease;
+    text-align: center;
+    display: inline-block;
+    text-decoration: none;
+}
+
+.start-btn:hover, .back-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+        0 0 20px rgba(255, 110, 196, 0.3),
+        0 10px 25px rgba(255, 110, 196, 0.4);
+}
+
+.logout-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 10px;
+    color: white;
+    cursor: pointer;
+    font-weight: 600;
+    background: linear-gradient(
+        135deg,
+        #ff6ec4,
+        #7873f5
+    );
+    transition: 0.3s;
+}
+
+.logout-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(255, 110, 196, 0.4);
+}
+
+/* ================= UI HOME PAGE STYLES ================= */
+.main-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: rgba(20, 20, 30, 0.8);
+    backdrop-filter: blur(15px);
+    border-radius: 20px;
+    padding: 40px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+}
+
+.page-title {
+    font-size: 32px;
+    font-weight: 600;
+    margin-bottom: 30px;
+    color: white;
+    text-align: center;
+}
+
+.section {
+    margin-bottom: 35px;
+    padding: 25px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.section h4 {
+    font-size: 20px;
+    margin-bottom: 20px;
+    color: #ffffff;
+}
+
+.row {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.row label {
+    min-width: 180px;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.row select, .row input {
+    flex: 1;
+    min-width: 200px;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    color: white;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.row select:focus, .row input:focus {
+    outline: none;
+    border-color: var(--gradient-1);
+    box-shadow: 0 0 20px rgba(255, 110, 196, 0.15);
+}
+
+.row select option {
+    background: #1a1a2e;
+    color: white;
+}
+
+.row button {
+    padding: 12px 25px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(
+        135deg,
+        var(--gradient-1),
+        var(--gradient-2)
+    );
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 14px;
+}
+
+.row button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(255, 110, 196, 0.3);
+}
+
+.row button:active {
+    transform: translateY(0);
+}
+
+.output {
+    margin-top: 15px;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    color: #a0d8a0;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    max-height: 300px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.back-btn {
+    width: auto;
+    padding: 12px 35px;
+    display: inline-block;
+    text-decoration: none;
+}
+
+/* ================= SCROLLBAR ================= */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 1200px) {
+    .card {
+        width: 100%;
+        max-width: 500px;
+    }
+    
+    .main-content {
+        padding: 25px;
+    }
+}
+
+@media (max-width: 768px) {
+    .header {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+        padding: 15px 20px;
+    }
+    
+    .header-title h2 {
+        font-size: 26px;
+    }
+    
+    .card {
+        width: 100%;
+        max-width: 400px;
+    }
+    
+    .main-content {
+        padding: 20px;
+    }
+    
+    .row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .row label {
+        min-width: auto;
+    }
+    
+    .row select, .row input {
+        min-width: auto;
+        width: 100%;
+    }
+    
+    .row button {
+        width: 100%;
+    }
+    
+    .user-section {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 10px;
+    }
+    
+    .header-title h2 {
+        font-size: 20px;
+    }
+    
+    .card {
+        max-width: 100%;
+    }
+    
+    .card-content {
+        padding: 20px;
+    }
+    
+    .section {
+        padding: 15px;
+    }
+}

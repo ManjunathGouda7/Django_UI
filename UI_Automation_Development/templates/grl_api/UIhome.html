@@ -1,0 +1,167 @@
+{% extends "grl_api/base.html" %}
+{% load static %}
+
+{% block title %}UI Checks - GRL{% endblock %}
+
+{% block content %}
+    <div class="main-content">
+        <h3 class="page-title">UI Checks</h3>
+
+        <div class="section">
+            <h4>1) Choose Product / Category</h4>
+            <div class="row">
+                <label>Product</label>
+                <select id="productSelect"></select>
+            </div>
+            <div class="row">
+                <label>Category</label>
+                <select id="categorySelect"></select>
+            </div>
+        </div>
+
+        <div class="section">
+            <h4>2) Load Test Tags / Test Suits</h4>
+            <div class="row">
+                <button onclick="loadTags()">Get Test Tags</button>
+                <button onclick="loadSuits()">Get Test Suits</button>
+            </div>
+            <div class="row">
+                <label>Tags (comma separated)</label>
+                <input id="tagsInput" placeholder="e.g. Sanity,Smoke" />
+            </div>
+            <div class="row">
+                <label>Test Suit (comma separated)</label>
+                <input id="suitsInput" placeholder="e.g. UI_Regression" />
+            </div>
+        </div>
+
+        <div class="section">
+            <h4>3) Load Testcases</h4>
+            <div class="row">
+                <button onclick="getTestcases()">Get Testcases</button>
+            </div>
+            <pre id="testcasesOut" class="output"></pre>
+        </div>
+
+        <div class="section">
+            <h4>4) Execute (UIRunner)</h4>
+            <div class="row">
+                <button onclick="runExecuteUITest()">Execute UITest</button>
+            </div>
+            <pre id="runOut" class="output"></pre>
+        </div>
+
+        <div class="section">
+            <button onclick="location.href='/'" class="back-btn">Back to Dashboard</button>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    <script>
+        async function fetchJson(url, opts = {}) {
+            try {
+                const res = await fetch(url, opts);
+                const txt = await res.text();
+                let data;
+                try { data = JSON.parse(txt); } catch { data = txt; }
+                return { status: res.status, ok: res.ok, data };
+            } catch (err) {
+                return { status: 0, ok: false, data: err.message };
+            }
+        }
+
+        async function loadProducts() {
+            const select = document.getElementById('productSelect');
+            select.innerHTML = '<option>Loading...</option>';
+            const r = await fetchJson('/api/v1/UIChecks/GetProducts/');
+            
+            select.innerHTML = '';
+            if (r.status !== 200 || !r.ok) {
+                select.innerHTML = `<option>Error loading products</option>`;
+                console.error(r);
+                return;
+            }
+
+            const products = r.data?.Details?.data?.products || r.data || [];
+            products.forEach(p => {
+                const opt = new Option(p, p);
+                select.appendChild(opt);
+            });
+
+            if (products.length) await loadCategories();
+        }
+
+        async function loadCategories() {
+            const product = document.getElementById('productSelect').value;
+            if (!product) return;
+
+            const select = document.getElementById('categorySelect');
+            select.innerHTML = '<option>Loading...</option>';
+
+            const r = await fetchJson(`/api/v1/UIChecks/GetCategory/${encodeURIComponent(product)}/`);
+            select.innerHTML = '';
+
+            if (r.status !== 200 || !r.ok) {
+                select.innerHTML = `<option>Error loading categories</option>`;
+                return;
+            }
+
+            const cats = r.data?.Details?.data || r.data || [];
+            cats.forEach(c => {
+                const opt = new Option(c, c);
+                select.appendChild(opt);
+            });
+        }
+
+        async function loadTags() {
+            const r = await fetchJson('/api/v1/UIChecks/GetTestTags/');
+            document.getElementById('testcasesOut').textContent = JSON.stringify(r, null, 2);
+        }
+
+        async function loadSuits() {
+            const r = await fetchJson('/api/v1/UIChecks/GetTestSuits/');
+            document.getElementById('testcasesOut').textContent = JSON.stringify(r, null, 2);
+        }
+
+        async function getTestcases() {
+            const product = document.getElementById('productSelect').value;
+            const category = document.getElementById('categorySelect').value;
+            const tags = document.getElementById('tagsInput').value.split(',').map(s => s.trim()).filter(Boolean);
+            const suits = document.getElementById('suitsInput').value.split(',').map(s => s.trim()).filter(Boolean);
+
+            const url = new URL('/api/v1/UIChecks/GetTestHeader/', window.location.origin);
+            url.searchParams.set('Product', product);
+            url.searchParams.set('Category', category);
+            tags.forEach(t => url.searchParams.append('Tags', t));
+            suits.forEach(s => url.searchParams.append('TestSuits', s));
+
+            const r = await fetchJson(url.toString());
+            document.getElementById('testcasesOut').textContent = JSON.stringify(r, null, 2);
+        }
+
+        async function runExecuteUITest() {
+            const out = document.getElementById('runOut');
+            out.textContent = 'Running... Please wait';
+
+            const payload = {
+                Product: document.getElementById('productSelect').value,
+                Category: document.getElementById('categorySelect').value,
+            };
+
+            const r = await fetchJson('/api/v1/UIRunner/ExecuteUITest/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            out.textContent = JSON.stringify(r, null, 2);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadProducts();
+            document.getElementById('productSelect').addEventListener('change', loadCategories);
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,18 @@
+{
+    "UIRunner":{
+        "General":{
+            "GetBaseURL":[
+                {"$match":{"Header":"ProductCategory"}},
+                {"$unwind":"$details"},
+                {"$match":{"details.Header":"MPP"}},
+                {"$unwind":"$details.details"},
+                {"$match":{"details.details.Header":"TPT"}},
+                {"$unwind": "$details.details.detatils" },
+                {"$project": {
+                    "_id":0,
+                    "URL":"$details.details.detatils.URL"
+                }}
+            ]
+        }
+    }
+}

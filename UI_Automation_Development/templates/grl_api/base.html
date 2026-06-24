@@ -1,0 +1,32 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Centralized Automation Platform - GRL{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <!-- Header -->
+    <div class="header">
+        <a href="/">
+            <img src="{% static 'images/Granite-River-Labs-Logo.webp' %}" width="150" alt="GRL Logo">
+        </a>
+        <div class="header-title">
+            <h2>Centralized Automation Platform - GRL</h2>
+        </div>
+        <div class="user-section">
+            <span>Guest User |</span>
+            <button class="logout-btn" onclick="alert('Logout functionality coming soon!')">Logout</button>
+        </div>
+    </div>
+
+    {% block content %}
+    {% endblock %}
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

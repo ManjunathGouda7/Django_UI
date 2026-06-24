@@ -1,0 +1,17 @@
+{
+    "UIChecks":{
+        "MPP_TPT_TrueIPaddress":"192.168.101.63",
+        "UI_Product":"MPP",
+        "UI_Category":"TPT",
+        "MPP_TPT_URL" : "http://localhost:2004/",
+        "MPP_TPR_URL" : "http://localhost:2002/",
+        "ReportPath":"C:\\",
+        "FileStorage" : "Local"
+    },
+    "FastAPI_Env":{
+        "MONGO_URL":"mongodb://192.168.100.53:27017",
+        "DATABASE_NAME":"UIDB",
+        "MODE":"ONLINE"
+
+    }
+}

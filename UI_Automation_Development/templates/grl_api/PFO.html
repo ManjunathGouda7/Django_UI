@@ -1,0 +1,768 @@
+{% extends "grl_api/base.html" %}
+{% load static %}
+
+{% block title %}PFO Automation Dashboard - GRL{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pfo.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="main-content" style="max-width: 1600px; margin: 0 auto; padding: 20px;"><h3 class="page-title">📊 PFO Automation Dashboard</h3><div id="toast" class="toast"></div>
+
+    <div class="container">
+        <!-- Header -->
+        
+
+        <!-- Stats -->
+        <div class="stats-grid" id="statsContainer">
+            <div class="stat-card">
+                <div class="label">Total Records</div>
+                <div class="value" id="totalRecords">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Avg PFO</div>
+                <div class="value" id="avgPFO">0 mW</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Min PFO</div>
+                <div class="value" id="minPFO">0 mW</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Max PFO</div>
+                <div class="value" id="maxPFO">0 mW</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Unique Boards</div>
+                <div class="value" id="uniqueBoards">0</div>
+            </div>
+        </div>
+
+        <!-- Upload Section -->
+        <section class="upload-section">
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📂</div>
+                <div class="upload-text">
+                    <strong>Click to upload</strong> or drag and drop CSV file here
+                </div>
+                <div class="upload-info">Supports CSV files with PFO data - dynamically reads all columns</div>
+                <input type="file" id="fileInput" accept=".csv">
+            </div>
+            <div style="margin-top: 15px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+                <button class="btn btn-primary" onclick="loadSampleData()">📊 Load Sample Data</button>
+                <span class="upload-status" id="uploadStatus">No file loaded</span>
+            </div>
+        </section>
+
+        <!-- Filter Section -->
+        <section class="filter-section">
+            <div class="filter-title">🔍 Filter Data</div>
+            <div class="filter-grid" id="filterGrid">
+                <div class="filter-group">
+                    <label>Board</label>
+                    <select id="filterBoard"><option value="(All)">(All)</option></select>
+                </div>
+                <div class="filter-group">
+                    <label>DUT</label>
+                    <select id="filterDUT"><option value="(All)">(All)</option></select>
+                </div>
+                <div class="filter-group">
+                    <label>RUN</label>
+                    <select id="filterRUN"><option value="(All)">(All)</option></select>
+                </div>
+                <div class="filter-group">
+                    <label>CRX</label>
+                    <select id="filterCRX"><option value="(All)">(All)</option></select>
+                </div>
+                <div class="filter-group">
+                    <label>Position</label>
+                    <select id="filterPosition"><option value="(All)">(All)</option></select>
+                </div>
+                <div class="filter-group">
+                    <label>PowerMode</label>
+                    <select id="filterPowerMode"><option value="(All)">(All)</option></select>
+                </div>
+                <div class="filter-group">
+                    <label>Power</label>
+                    <select id="filterPower"><option value="(All)">(All)</option></select>
+                </div>
+            </div>
+            <div class="filter-actions">
+                <button class="btn btn-primary" onclick="applyFilters()">Apply Filters</button>
+                <button class="btn btn-outline" onclick="resetFilters()">Reset</button>
+            </div>
+        </section>
+
+        <!-- Chart Section -->
+        <section class="chart-section">
+            <div class="chart-header">
+                <div>
+                    <div class="chart-title">PFO vs Rectified Power</div>
+                </div>
+                <div class="chart-legend" id="chartLegend"></div>
+            </div>
+            <div class="chart-container">
+                <canvas id="pfoChart"></canvas>
+            </div>
+            <div class="loading" id="chartLoading">
+                <div class="spinner"></div>
+                <p style="margin-top: 15px; color: var(--text-secondary);">Loading chart data...</p>
+            </div>
+        </section>
+
+        <!-- Data Table -->
+        <section class="table-section">
+            <div class="table-header">
+                <div>
+                    <h3>PFO Data Log</h3>
+                    <p style="color: var(--text-secondary); font-size: 13px;">Showing test results</p>
+                </div>
+                <span id="recordCount">0 records</span>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr id="tableHeader">
+                            <th>Board</th>
+                            <th>DUT</th>
+                            <th>RUN</th>
+                            <th>CRX</th>
+                            <th>Position</th>
+                            <th>Power</th>
+                            <th>PowerMode</th>
+                            <th>Rectified Power [W]</th>
+                            <th>PFO [mW]</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dataTableBody">
+                        <tr>
+                            <td colspan="10" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                                No data available. Upload a CSV or load sample data.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <!-- Chart.js -->
+    
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// ==================== GLOBALS ====================
+        let allData = [];
+        let filteredData = [];
+        let chart = null;
+        let hiddenLegends = new Set();
+        let allColumns = [];
+        let numericColumns = ['RectifiedPower', 'PFO', 'Frequency'];
+        let categoricalColumns = ['Board', 'DUT', 'RUN', 'CRX', 'Position', 'Power', 'PowerMode'];
+        
+        const CHART_COLORS = [
+            '#ff6ec4', '#7873f5', '#10b981', '#f59e0b', 
+            '#ef4444', '#06b6d4', '#f472b6', '#8b5cf6',
+            '#34d399', '#fb923c', '#60a5fa', '#fca5a5',
+            '#a78bfa', '#34d399', '#fbbf24', '#f87171'
+        ];
+
+        // ==================== TOAST ====================
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast toast-${type}`;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // ==================== FILE UPLOAD ====================
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = this.files[0];
+            if (file) {
+                parseCSVFile(file);
+            }
+        });
+
+        const uploadArea = document.getElementById('uploadArea');
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file) {
+                parseCSVFile(file);
+            }
+        });
+
+        function parseCSVFile(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const text = e.target.result;
+                    const result = parseCSV(text);
+                    if (result.data.length > 0) {
+                        allData = result.data;
+                        allColumns = result.columns;
+                        document.getElementById('uploadStatus').textContent = `${file.name} (${allData.length} records, ${allColumns.length} columns)`;
+                        showToast(`Loaded ${allData.length} records from ${file.name}`, 'success');
+                        processData();
+                    } else {
+                        showToast('No valid data found in CSV', 'error');
+                    }
+                } catch (err) {
+                    showToast('Error parsing CSV: ' + err.message, 'error');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function parseCSV(text) {
+            const lines = text.split('\n').filter(line => line.trim());
+            if (lines.length < 2) return { data: [], columns: [] };
+
+            // Parse header - get all columns
+            const header = lines[0].split(',').map(h => h.trim());
+            
+            // Map columns dynamically
+            const colMap = {};
+            const columnNames = [];
+            
+            header.forEach((col, index) => {
+                const colLower = col.toLowerCase();
+                colMap[colLower] = index;
+                columnNames.push(col);
+            });
+
+            // Find required columns
+            const findCol = (names) => {
+                for (const name of names) {
+                    const found = header.findIndex(h => h.toLowerCase() === name.toLowerCase());
+                    if (found !== -1) return found;
+                }
+                return -1;
+            };
+
+            const pfoIdx = findCol(['PFO [mW]', 'PFO', 'pfo']);
+            const rectIdx = findCol(['Rectified Power [W]', 'RectifiedPower', 'rectified power']);
+            const freqIdx = findCol(['Frequency [kHz]', 'Frequency', 'frequency']);
+            
+            // Find categorical columns
+            const boardIdx = findCol(['Board', 'board']);
+            const dutIdx = findCol(['DUT', 'dut']);
+            const runIdx = findCol(['RUN', 'run']);
+            const crxIdx = findCol(['CRX', 'crx']);
+            const posIdx = findCol(['Position', 'position']);
+            const powerIdx = findCol(['Power', 'power']);
+            const powerModeIdx = findCol(['PowerMode', 'powermode']);
+
+            // Check if we have required numeric columns
+            if (pfoIdx === -1 || rectIdx === -1) {
+                showToast('Missing required columns: PFO and Rectified Power. Please check CSV format.', 'error');
+                return { data: [], columns: [] };
+            }
+
+            const data = [];
+            for (let i = 1; i < lines.length; i++) {
+                const values = lines[i].split(',').map(v => v.trim());
+                if (values.length < Math.max(pfoIdx, rectIdx) + 1) continue;
+
+                const row = {
+                    Board: boardIdx !== -1 ? values[boardIdx] : '',
+                    DUT: dutIdx !== -1 ? values[dutIdx] : '',
+                    RUN: runIdx !== -1 ? values[runIdx] : '',
+                    CRX: crxIdx !== -1 ? values[crxIdx] : '',
+                    Position: posIdx !== -1 ? values[posIdx] : '',
+                    Power: powerIdx !== -1 ? values[powerIdx] : '',
+                    PowerMode: powerModeIdx !== -1 ? values[powerModeIdx] : '',
+                    RectifiedPower: parseFloat(values[rectIdx]) || 0,
+                    PFO: parseFloat(values[pfoIdx]) || 0,
+                    Frequency: freqIdx !== -1 ? parseFloat(values[freqIdx]) || 0 : 0,
+                };
+
+                // Add any other columns dynamically
+                header.forEach((col, idx) => {
+                    const colLower = col.toLowerCase();
+                    if (!['board', 'dut', 'run', 'crx', 'position', 'power', 'powermode', 
+                          'rectified power [w]', 'rectifiedpower', 'pfo [mw]', 'pfo', 
+                          'frequency [khz]', 'frequency'].includes(colLower)) {
+                        const key = col.replace(/[^a-zA-Z0-9]/g, '');
+                        row[key] = values[idx] || '';
+                    }
+                });
+
+                // Skip rows with zero PFO and RectifiedPower (likely invalid)
+                if (row.PFO === 0 && row.RectifiedPower === 0) continue;
+                if (isNaN(row.PFO) || isNaN(row.RectifiedPower)) continue;
+
+                data.push(row);
+            }
+
+            // Auto-detect categorical columns from data
+            if (data.length > 0) {
+                const sample = data[0];
+                const detectedCategorical = [];
+                Object.keys(sample).forEach(key => {
+                    if (!['RectifiedPower', 'PFO', 'Frequency'].includes(key) && 
+                        !['RectifiedPower', 'PFO', 'Frequency'].includes(key)) {
+                        const values = [...new Set(data.map(row => row[key]).filter(v => v && v !== ''))];
+                        if (values.length > 1 && values.length < data.length * 0.8) {
+                            detectedCategorical.push(key);
+                        }
+                    }
+                });
+                // Add to categorical columns
+                categoricalColumns = [...new Set([...categoricalColumns, ...detectedCategorical])];
+            }
+
+            return { data, columns: header };
+        }
+
+        // ==================== SAMPLE DATA ====================
+        function loadSampleData() {
+            const sampleData = [];
+            const boards = ['TPR045_GTPT', 'TPR045_GTPT', 'TPR045_GTPT', 'TPR046_GTPT', 'TPR046_GTPT'];
+            const duts = ['TPT', 'TPT', 'TPT', 'TPR', 'TPR'];
+            const runs = ['RUN1', 'RUN2', 'RUN3'];
+            const crxs = ['CRX_174', 'CRX_710', 'CRX_174', 'CRX_710'];
+            const positions = ['00', '00', '22', '11', '33'];
+            const powerModes = ['HPM', 'LPM', 'NPM', 'HPM', 'LPM'];
+            const powers = ['ALL', '10W', '12.5W', '15W', 'ALL'];
+            
+            const basePFO = [25, 50, 75, 100, 125, 150];
+            const baseRectified = [3, 6, 10, 15, 20, 25];
+
+            for (let i = 0; i < 200; i++) {
+                const idx = i % 6;
+                sampleData.push({
+                    Board: boards[i % boards.length],
+                    DUT: duts[i % duts.length],
+                    RUN: runs[i % runs.length],
+                    CRX: crxs[i % crxs.length],
+                    Position: positions[i % positions.length],
+                    Power: powers[i % powers.length],
+                    PowerMode: powerModes[i % powerModes.length],
+                    RectifiedPower: baseRectified[idx] + (Math.random() * 3 - 1.5),
+                    PFO: basePFO[idx] + (Math.random() * 30 - 15),
+                    Frequency: 360 + (Math.random() * 10 - 5),
+                    // Additional dynamic columns
+                    Temperature: 25 + (Math.random() * 10),
+                    Voltage: 12 + (Math.random() * 2),
+                });
+            }
+
+            allData = sampleData;
+            allColumns = ['Board', 'DUT', 'RUN', 'CRX', 'Position', 'Power', 'PowerMode', 'RectifiedPower', 'PFO', 'Frequency', 'Temperature', 'Voltage'];
+            document.getElementById('uploadStatus').textContent = `Sample data (${allData.length} records)`;
+            showToast(`Loaded ${allData.length} sample records`, 'success');
+            processData();
+        }
+
+        // ==================== PROCESS DATA ====================
+        function processData() {
+            populateFilters();
+            applyFilters();
+        }
+
+        function populateFilters() {
+            // Get all categorical columns from data
+            const categoricalFields = ['Board', 'DUT', 'RUN', 'CRX', 'Position', 'Power', 'PowerMode'];
+            
+            // Add any other categorical columns found in data
+            if (allData.length > 0) {
+                const sample = allData[0];
+                Object.keys(sample).forEach(key => {
+                    if (!['RectifiedPower', 'PFO', 'Frequency'].includes(key) && 
+                        !categoricalFields.includes(key)) {
+                        const values = [...new Set(allData.map(row => row[key]).filter(v => v && v !== ''))];
+                        if (values.length > 1 && values.length < allData.length * 0.8) {
+                            categoricalFields.push(key);
+                        }
+                    }
+                });
+            }
+
+            // Dynamic filter creation
+            const filterGrid = document.getElementById('filterGrid');
+            const filterIds = {};
+            
+            // Clear existing filters (keep filter actions)
+            const filterActions = document.querySelector('.filter-actions');
+            const filterTitle = document.querySelector('.filter-title');
+            
+            // Remove old filter groups (keep title and actions)
+            filterGrid.querySelectorAll('.filter-group').forEach(el => el.remove());
+
+            categoricalFields.forEach((field, index) => {
+                const filterId = `filter${field}`;
+                filterIds[field] = filterId;
+                
+                const group = document.createElement('div');
+                group.className = 'filter-group';
+                
+                const label = document.createElement('label');
+                label.textContent = field;
+                
+                const select = document.createElement('select');
+                select.id = filterId;
+                
+                const optionAll = document.createElement('option');
+                optionAll.value = '(All)';
+                optionAll.textContent = '(All)';
+                select.appendChild(optionAll);
+                
+                // Get unique values from data
+                const values = [...new Set(allData.map(row => row[field]).filter(v => v && v !== ''))].sort();
+                values.forEach(value => {
+                    const option = document.createElement('option');
+                    option.value = value;
+                    option.textContent = value;
+                    select.appendChild(option);
+                });
+                
+                group.appendChild(label);
+                group.appendChild(select);
+                filterGrid.appendChild(group);
+            });
+
+            // Re-append filter actions
+            if (!document.querySelector('.filter-actions')) {
+                const actions = document.createElement('div');
+                actions.className = 'filter-actions';
+                actions.innerHTML = `
+                    <button class="btn btn-primary" onclick="applyFilters()">Apply Filters</button>
+                    <button class="btn btn-outline" onclick="resetFilters()">Reset</button>
+                `;
+                filterGrid.parentNode.appendChild(actions);
+            }
+
+            // Store filter IDs for applyFilters
+            window._filterIds = filterIds;
+        }
+
+        function applyFilters() {
+            const filterIds = window._filterIds || {};
+            const filters = {};
+            
+            Object.keys(filterIds).forEach(key => {
+                const select = document.getElementById(filterIds[key]);
+                if (select) {
+                    filters[key] = select.value;
+                }
+            });
+
+            filteredData = allData.filter(row => {
+                for (const [key, value] of Object.entries(filters)) {
+                    if (value && value !== '(All)' && row[key] !== value) {
+                        return false;
+                    }
+                }
+                return true;
+            });
+
+            renderData(filteredData);
+            renderChart(filteredData);
+            updateStats(filteredData);
+        }
+
+        function resetFilters() {
+            document.querySelectorAll('#filterGrid select').forEach(select => {
+                select.value = '(All)';
+            });
+            applyFilters();
+        }
+
+        // ==================== RENDER TABLE ====================
+        function renderData(data) {
+            const tbody = document.getElementById('dataTableBody');
+            const thead = document.getElementById('tableHeader');
+            
+            if (!data || data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="10" style="text-align: center; padding: 40px; color: var(--text-secondary);">No data available</td></tr>`;
+                document.getElementById('recordCount').textContent = '0 records';
+                return;
+            }
+
+            // Dynamic table headers based on data
+            const sample = data[0];
+            const columns = Object.keys(sample);
+            
+            // Update header
+            thead.innerHTML = columns.map(col => `<th>${col}</th>`).join('');
+
+            // Update body
+            tbody.innerHTML = data.slice(0, 500).map(row => {
+                return `<tr>${columns.map(col => {
+                    let val = row[col];
+                    if (typeof val === 'number') {
+                        val = val.toFixed(2);
+                    }
+                    return `<td>${val || '-'}</td>`;
+                }).join('')}</tr>`;
+            }).join('');
+
+            document.getElementById('recordCount').textContent = `${data.length} records`;
+        }
+
+        // ==================== RENDER CHART (Scatter Plot) ====================
+        function renderChart(data) {
+            const ctx = document.getElementById('pfoChart').getContext('2d');
+            
+            if (chart) {
+                chart.destroy();
+                chart = null;
+            }
+
+            if (!data || data.length === 0) {
+                chart = new Chart(ctx, {
+                    type: 'scatter',
+                    data: {
+                        datasets: [{
+                            label: 'No Data',
+                            data: [{x: 0, y: 0}],
+                            backgroundColor: 'rgba(255,255,255,0.1)',
+                            pointRadius: 0,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { 
+                                title: { display: true, text: 'Rectified Power [W]', color: '#d6d6d6' },
+                                ticks: { color: '#d6d6d6' },
+                                grid: { color: 'rgba(255,255,255,0.05)' }
+                            },
+                            y: { 
+                                title: { display: true, text: 'PFO [mW]', color: '#d6d6d6' },
+                                ticks: { color: '#d6d6d6' },
+                                grid: { color: 'rgba(255,255,255,0.05)' }
+                            }
+                        }
+                    }
+                });
+                return;
+            }
+
+            // Determine grouping key - use Power or first categorical column
+            const groupKey = 'Power' in data[0] ? 'Power' : 
+                            'Board' in data[0] ? 'Board' : 
+                            Object.keys(data[0])[0];
+
+            const powerGroups = {};
+            data.forEach(row => {
+                const key = row[groupKey] || 'Unknown';
+                if (!powerGroups[key]) {
+                    powerGroups[key] = [];
+                }
+                powerGroups[key].push({
+                    x: row.RectifiedPower || 0,
+                    y: row.PFO || 0,
+                    label: `${row.Board || ''} ${row.PowerMode || ''}`
+                });
+            });
+
+            const labels = Object.keys(powerGroups).sort();
+            const datasets = labels.map((label, index) => {
+                const color = CHART_COLORS[index % CHART_COLORS.length];
+                const points = powerGroups[label];
+                return {
+                    label: label,
+                    data: points,
+                    backgroundColor: color,
+                    borderColor: color,
+                    pointRadius: 5,
+                    pointHoverRadius: 8,
+                    pointBorderWidth: 1,
+                    pointBorderColor: 'rgba(255,255,255,0.5)',
+                    showLine: false,
+                    tension: 0
+                };
+            });
+
+            // Build legend
+            const legendContainer = document.getElementById('chartLegend');
+            legendContainer.innerHTML = '';
+            datasets.forEach((ds, index) => {
+                const isHidden = hiddenLegends.has(ds.label);
+                const item = document.createElement('div');
+                item.className = `legend-item${isHidden ? ' disabled' : ''}`;
+                item.innerHTML = `
+                    <span class="legend-color" style="background: ${ds.backgroundColor}"></span>
+                    ${ds.label} (${ds.data.length})
+                `;
+                item.onclick = () => toggleLegend(ds.label);
+                legendContainer.appendChild(item);
+            });
+
+            chart = new Chart(ctx, {
+                type: 'scatter',
+                data: { datasets: datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const point = context.raw;
+                                    return `PFO: ${point.y.toFixed(2)} mW | Rectified: ${point.x.toFixed(2)} W`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Rectified Power [W]',
+                                color: '#d6d6d6',
+                                font: { size: 14 }
+                            },
+                            ticks: { color: '#d6d6d6' },
+                            grid: { color: 'rgba(255,255,255,0.05)' }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'PFO [mW]',
+                                color: '#d6d6d6',
+                                font: { size: 14 }
+                            },
+                            ticks: { color: '#d6d6d6' },
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            beginAtZero: true
+                        }
+                    },
+                    elements: {
+                        point: {
+                            radius: 4,
+                            hoverRadius: 7,
+                            borderWidth: 1,
+                            borderColor: 'rgba(255,255,255,0.3)'
+                        }
+                    }
+                }
+            });
+        }
+
+        function toggleLegend(label) {
+            if (hiddenLegends.has(label)) {
+                hiddenLegends.delete(label);
+            } else {
+                hiddenLegends.add(label);
+            }
+            
+            if (chart) {
+                chart.data.datasets.forEach(ds => {
+                    if (ds.label === label) {
+                        ds.hidden = hiddenLegends.has(label);
+                    }
+                });
+                chart.update();
+            }
+            
+            document.querySelectorAll('.legend-item').forEach(item => {
+                const text = item.textContent.trim();
+                if (text.startsWith(label)) {
+                    item.classList.toggle('disabled', hiddenLegends.has(label));
+                }
+            });
+        }
+
+        // ==================== UPDATE STATS ====================
+        function updateStats(data) {
+            if (!data || data.length === 0) {
+                document.getElementById('totalRecords').textContent = '0';
+                document.getElementById('avgPFO').textContent = '0 mW';
+                document.getElementById('minPFO').textContent = '0 mW';
+                document.getElementById('maxPFO').textContent = '0 mW';
+                document.getElementById('uniqueBoards').textContent = '0';
+                return;
+            }
+
+            const pfoValues = data.map(row => row.PFO || 0);
+            const avgPFO = pfoValues.reduce((a, b) => a + b, 0) / pfoValues.length;
+            const minPFO = Math.min(...pfoValues);
+            const maxPFO = Math.max(...pfoValues);
+            const uniqueBoards = [...new Set(data.map(row => row.Board).filter(v => v && v !== ''))].length;
+
+            document.getElementById('totalRecords').textContent = data.length;
+            document.getElementById('avgPFO').textContent = `${avgPFO.toFixed(2)} mW`;
+            document.getElementById('minPFO').textContent = `${minPFO.toFixed(2)} mW`;
+            document.getElementById('maxPFO').textContent = `${maxPFO.toFixed(2)} mW`;
+            document.getElementById('uniqueBoards').textContent = uniqueBoards;
+        }
+
+        // ==================== EXPORT REPORT ====================
+        function exportReport() {
+            if (!filteredData || filteredData.length === 0) {
+                showToast('No data to export', 'error');
+                return;
+            }
+
+            const sample = filteredData[0];
+            const headers = Object.keys(sample);
+            
+            let csv = headers.join(',') + '\n';
+            filteredData.forEach(row => {
+                csv += headers.map(h => {
+                    let val = row[h] || '';
+                    if (typeof val === 'number') {
+                        val = val.toFixed(3);
+                    }
+                    return val;
+                }).join(',') + '\n';
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `PFO_Export_${new Date().toISOString().slice(0,10)}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Report exported successfully', 'success');
+        }
+
+        // ==================== REFRESH / CLEAR ====================
+        function refreshData() {
+            if (allData.length > 0) {
+                hiddenLegends.clear();
+                applyFilters();
+                showToast('Data refreshed', 'info');
+            } else {
+                loadSampleData();
+            }
+        }
+
+        function clearData() {
+            if (!confirm('Clear all data?')) return;
+            allData = [];
+            filteredData = [];
+            hiddenLegends.clear();
+            document.getElementById('uploadStatus').textContent = 'No file loaded';
+            renderData([]);
+            renderChart([]);
+            updateStats([]);
+            populateFilters();
+            showToast('Data cleared', 'info');
+        }
+
+        // ==================== INIT ====================
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSampleData();
+        });
+</script>
+{% endblock %}
